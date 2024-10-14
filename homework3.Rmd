@@ -1,0 +1,44 @@
+---
+title: "Homework3"
+author: "Yunjia Liu"
+date: "2024-10-14"
+output: github_document
+---
+
+```{r setup, include=FALSE}
+library(p8105.datasets)
+library(tidyverse)
+library(tidyr)
+```
+
+## Problem1
+Load the dataset.
+```{r load data}
+data("ny_noaa")
+```
+
+Answer to the questions.
+First, we separate variables for year, month, and day in the dataset. Besides, noticing the tmax and tmin are chr in the table, we will convert the temperature into the numeric. Also, according to the description of the dataset, temperature and precipitation are in tenths of degrees C and mm separately. So, we also need to convert the unit for these two variables. The unit of snowfall is already in mm.
+
+```{r clean data}
+ny_noaa_clean = ny_noaa |>
+  separate(date, c('year', 'month', 'day'), sep = "-",remove = FALSE) |>
+  mutate(tmax = as.numeric(tmax),
+         tmin = as.numeric(tmin),
+         tmax = tmax / 10,
+         tmin = tmin / 10,
+         prcp = prcp / 10)
+```
+
+Second,explore the snowfall data.
+```{r}
+# Snowfall summary
+snowfall_counts = ny_noaa_cleaned |>
+  filter(!is.na(snow)) |>
+  count(snow) |>
+  arrange(desc(n))
+
+print(head(snowfall_counts, 10))
+
+```
+
