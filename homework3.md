@@ -11,13 +11,15 @@ Load the dataset.
 data("ny_noaa")
 ```
 
-Answer to the questions. 1. Data Cleaning and Exploring the Snowfall
-Data First, we separate variables for year, month, and day in the
-dataset. Besides, noticing the tmax and tmin are chr in the table, we
-will convert the temperature into the numeric. Also, according to the
-description of the dataset, temperature and precipitation are in tenths
-of degrees C and mm separately. So, we also need to convert the unit for
-these two variables. The unit of snowfall is already in mm.
+Answer to the questions.
+
+1.  Data Cleaning and Exploring the Snowfall Data First, we separate
+    variables for year, month, and day in the dataset. Besides, noticing
+    the tmax and tmin are chr in the table, we will convert the
+    temperature into the numeric. Also, according to the description of
+    the dataset, temperature and precipitation are in tenths of degrees
+    C and mm separately. So, we also need to convert the unit for these
+    two variables. The unit of snowfall is already in mm.
 
 ``` r
 ny_noaa_clean = ny_noaa |>
@@ -104,22 +106,21 @@ temp_summary |>
         plot.title = element_text(hjust = 0.5))
 ```
 
-    ## Warning: Removed 5640 rows containing missing values or values outside the scale range
-    ## (`geom_line()`).
-
-    ## Warning: Removed 5970 rows containing missing values or values outside the scale range
-    ## (`geom_point()`).
-
-![](homework3_files/figure-gfm/unnamed-chunk-2-1.png)<!-- -->
+<img src="homework3_files/figure-gfm/unnamed-chunk-2-1.png" width="90%" />
 
 3.  Two-Panel Plot: (i) Hex plot for tmax vs tmin and (ii) ridge plot
     for the distribution of snowfall
 
-From the hexplot, we can find that there is a positive correlation
+From the hex plot, we can find that there is a positive correlation
 between tmax and tmin since warmer days tend to have both higher minimum
 and maximum temperatures.
 
-From the ridge plot, we will see that in most of all years
+From the ridge plot, we will see that in most of all years many stations
+had snowfall between 0 and 35 mm. Additionally, it is obvious that
+certain stations see about 45 mm of snow and a small group of stations
+that sees nearly 80 mm. It is probably caused by miscalcualtion between
+unit systems. Also, we can find that there’s lower snowfall each year
+from past to now, which may serve as a sign for a global warning.
 
 ``` r
 tmax_tmin_plot = 
@@ -157,12 +158,12 @@ print(tmax_tmin_plot + snowfall_plot)
 
     ## Picking joint bandwidth of 3.76
 
-![](homework3_files/figure-gfm/unnamed-chunk-3-1.png)<!-- -->
+<img src="homework3_files/figure-gfm/unnamed-chunk-3-1.png" width="90%" />
 
 ## Problem2
 
-Load the dataset. Skip some rows in the beginning of nhanes_covar.csv to
-read the correct data.
+1.1 Load the dataset. Skip some rows in the beginning of
+nhanes_covar.csv to read the correct data.
 
 ``` r
 accel_data = read_csv("./data/nhanes_accel.csv") |>
@@ -190,7 +191,7 @@ demographic_data = read_csv("./data/nhanes_covar.csv",skip = 4) |>
     ## ℹ Use `spec()` to retrieve the full column specification for this data.
     ## ℹ Specify the column types or set `show_col_types = FALSE` to quiet this message.
 
-Cleaning the data. We exclude participants under 21 and those with
+1.2 Cleaning the data. We exclude participants under 21 and those with
 missing demographic data. Then, encoding sex as factor (originally
 double) and re-coding the education level.
 
@@ -216,9 +217,12 @@ demographic_data_clean =
   )
 ```
 
-We merge Accelerometer Data and Demographic Data by participants id. And
-then create a table of men and female by education level. Finally, we
-visualize age distributions by sex and education level.
+2.  We merge Accelerometer Data and Demographic Data by participants id.
+    And then create a table of men and female by education level.
+    Finally, we visualize age distributions by sex and education level
+    using density plot. The plot has age as x-axis and is divided into
+    three categories by education level, colored using different colour
+    for male and female.
 
 ``` r
 merged_data = demographic_data_clean |>
@@ -252,4 +256,107 @@ merged_data |>
         plot.title = element_text(hjust = 0.5))
 ```
 
-![](homework3_files/figure-gfm/unnamed-chunk-6-1.png)<!-- -->
+<img src="homework3_files/figure-gfm/unnamed-chunk-6-1.png" width="90%" />
+
+3.  Aggregate Total Activity for Each Participant and Plot against Age
+
+Sum MIMS values for each participant to get total activity and then plot
+total activity against age, with panels for each education level and
+color by sex. This plot shows the relationship between total activity
+(measured in MIMS) and age, with data split by sex and education level.
+The trend lines (using geom_smooth() with loess smoothing) indicate how
+activity changes with age, providing a way to compare activity levels
+between males and females within each education level.
+
+Comment:
+
+- Across all education levels, we observe a slight decline in total
+  activity with *increasing age*.The loess curves show a subtle downward
+  trend for both sexes in most panels, indicating that physical activity
+  tends to decrease with age.
+- Participants with more than *high school education* exhibit more
+  stable activity patterns, suggesting that education may play a role in
+  maintaining consistent physical activity over time.
+- Participants with lower education levels show greater variability in
+  their physical activity patterns, indicating that lifestyle factors
+  may contribute to differences in physical activity within this group.
+- While there are some small differences in specific education
+  categories (e.g., slight male advantage at younger ages), the overall
+  patterns for men and women are quite similar.
+
+``` r
+total_activity = merged_data |>
+  group_by(seqn, age, sex, education) |>
+  summarize(total_activity = sum(c(min1,min1440), na.rm = TRUE), .groups = "drop")
+
+
+total_activity |>
+ggplot(aes(x = age, y = total_activity, color = sex)) +
+  geom_point(alpha = 0.6) +
+  geom_smooth() +
+  facet_wrap(~education, ncol = 2) +
+  labs(
+    title = "Total Activity vs Age by Sex and Education Level",
+    x = "Age", y = "Total Activity (MIMS)"
+  ) +
+  theme_minimal()+
+  theme(legend.position = "bottom",
+        plot.title = element_text(hjust = 0.5))
+```
+
+    ## `geom_smooth()` using method = 'loess' and formula = 'y ~ x'
+
+<img src="homework3_files/figure-gfm/unnamed-chunk-7-1.png" width="90%" />
+
+4.  Create 24-hour monitor activity plot
+
+We first pivot the dataset into a longer version so that we can link the
+exact time and mims for each individual.Also, we rename and mutate the
+exact time ‘X’ from the original column name ‘minX’, converting it into
+a numeric. After reshaping, each row now corresponds to a single
+participant’s activity for a given minute of the day. Then, we group and
+summarize the data to calculate the average activity (MIMS) for each
+minute, split by sex and education level.
+
+Comment on the 24-hour monitor activity plot:
+
+- Across all education levels, participants tend to be most active
+  during the daytime and less active at night, reflecting normal
+  sleep-wake cycles.
+- Participants with higher education show slightly more consistent and
+  higher peak activity levels, suggesting a possible link between
+  education and more structured or healthier lifestyles.
+- While small differences exist, overall the patterns are similar
+  between men and women. Any differences are more noticeable among
+  participants with less education, where men tend to show slightly
+  higher activity during the day.
+
+``` r
+merged_data_new = merged_data |>
+  pivot_longer(min1:min1440,
+               names_to='time',
+               values_to='mims',
+               names_prefix = 'min') |>
+  rename(time_min=time)|>
+  mutate(time_min=as.numeric(time_min))
+
+hourly_activity = merged_data_new |>
+  group_by(time_min, sex, education) |>
+  summarize(mean_mims = mean(mims, na.rm = TRUE), .groups = "drop")
+
+ggplot(hourly_activity, aes(x = time_min, y = mean_mims, color = sex)) +
+  geom_line() +
+  geom_smooth(se = FALSE) +
+  facet_wrap(~education, ncol = 1) +
+  labs(
+    title = "24-Hour Activity Patterns by Education Level and Sex",
+    x = "Minute of Day", y = "Mean Activity (MIMS)"
+  ) +
+  theme_minimal() +
+  theme(legend.position = "bottom",
+        plot.title = element_text(hjust = 0.5))  
+```
+
+    ## `geom_smooth()` using method = 'gam' and formula = 'y ~ s(x, bs = "cs")'
+
+<img src="homework3_files/figure-gfm/unnamed-chunk-8-1.png" width="90%" />
