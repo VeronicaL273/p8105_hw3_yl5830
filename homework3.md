@@ -140,16 +140,16 @@ snowfall_plot =
   ny_noaa_clean |>
   filter(snow > 0 & snow < 100, !is.na(snow)) |>
   ggplot(aes(x = snow, y = factor(year))) +
-  geom_density_ridges(scale = 1.2, rel_min_height = 0.01) +  # Ridge plot
-  scale_fill_viridis_c(option = "C") +  # Color based on snowfall amount
+  geom_density_ridges(scale = 1.2, rel_min_height = 0.01) +  
+  scale_fill_viridis_c(option = "C") +  
   labs(
     title = "Distribution of Snowfall (0-100 mm) by Year",
     x = "Snowfall (mm)", y = "Year"
   ) +
   theme_minimal() +
   theme(
-    legend.position = "none",  # Hide legend to reduce clutter
-    axis.text.y = element_text(size = 8)  # Adjust y-axis text size for readability
+    legend.position = "none",  
+    axis.text.y = element_text(size = 8)  
   )
 
 print(tmax_tmin_plot + snowfall_plot)
@@ -158,3 +158,98 @@ print(tmax_tmin_plot + snowfall_plot)
     ## Picking joint bandwidth of 3.76
 
 ![](homework3_files/figure-gfm/unnamed-chunk-3-1.png)<!-- -->
+
+## Problem2
+
+Load the dataset. Skip some rows in the beginning of nhanes_covar.csv to
+read the correct data.
+
+``` r
+accel_data = read_csv("./data/nhanes_accel.csv") |>
+  janitor::clean_names()  
+```
+
+    ## Rows: 250 Columns: 1441
+    ## ── Column specification ────────────────────────────────────────────────────────
+    ## Delimiter: ","
+    ## dbl (1441): SEQN, min1, min2, min3, min4, min5, min6, min7, min8, min9, min1...
+    ## 
+    ## ℹ Use `spec()` to retrieve the full column specification for this data.
+    ## ℹ Specify the column types or set `show_col_types = FALSE` to quiet this message.
+
+``` r
+demographic_data = read_csv("./data/nhanes_covar.csv",skip = 4) |>
+  janitor::clean_names()
+```
+
+    ## Rows: 250 Columns: 5
+    ## ── Column specification ────────────────────────────────────────────────────────
+    ## Delimiter: ","
+    ## dbl (5): SEQN, sex, age, BMI, education
+    ## 
+    ## ℹ Use `spec()` to retrieve the full column specification for this data.
+    ## ℹ Specify the column types or set `show_col_types = FALSE` to quiet this message.
+
+Cleaning the data. We exclude participants under 21 and those with
+missing demographic data. Then, encoding sex as factor (originally
+double) and re-coding the education level.
+
+``` r
+demographic_data_clean =
+  demographic_data |>
+  filter(age >= 21, !is.na(sex), !is.na(education)) |>
+  mutate(
+    sex = 
+      case_match(
+        sex, 
+        1 ~ "male", 
+        2 ~ "female"),
+    education =
+      case_match(
+        education,
+        1 ~ "Less than high school",
+        2 ~ "High school equivalent",
+        3 ~ "More than high school"
+      ),
+    sex = as.factor(sex),
+    education = as.factor(education)
+  )
+```
+
+We merge Accelerometer Data and Demographic Data by participants id. And
+then create a table of men and female by education level. Finally, we
+visualize age distributions by sex and education level.
+
+``` r
+merged_data = demographic_data_clean |>
+  inner_join(accel_data, by = "seqn")
+
+education_table = merged_data |>
+  group_by(education, sex) |>
+  summarize(count = n(), .groups = "drop") |>
+  pivot_wider(names_from = sex, values_from = count, values_fill = 0)
+print(education_table)
+```
+
+    ## # A tibble: 3 × 3
+    ##   education              female  male
+    ##   <fct>                   <int> <int>
+    ## 1 High school equivalent     23    36
+    ## 2 Less than high school      29    28
+    ## 3 More than high school      59    56
+
+``` r
+merged_data |>
+  ggplot(aes(x = age, fill = sex)) +
+  geom_density(alpha = 0.5) +
+  facet_wrap(~education, ncol = 2) +
+  labs(
+    title = "Age Distribution by Sex and Education Level",
+    x = "Age", y = "Density"
+  ) +
+  theme_minimal() +
+   theme(legend.position = "bottom",
+        plot.title = element_text(hjust = 0.5))
+```
+
+![](homework3_files/figure-gfm/unnamed-chunk-6-1.png)<!-- -->
