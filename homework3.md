@@ -13,13 +13,14 @@ data("ny_noaa")
 
 Answer to the questions.
 
-1.  Data Cleaning and Exploring the Snowfall Data First, we separate
-    variables for year, month, and day in the dataset. Besides, noticing
-    the tmax and tmin are chr in the table, we will convert the
-    temperature into the numeric. Also, according to the description of
-    the dataset, temperature and precipitation are in tenths of degrees
-    C and mm separately. So, we also need to convert the unit for these
-    two variables. The unit of snowfall is already in mm.
+1.  Data Cleaning and Exploring the Snowfall Data
+
+First, we separate variables for year, month, and day in the dataset.
+Besides, noticing the tmax and tmin are chr in the table, we will
+convert the temperature into the numeric. Also, according to the
+description of the dataset, temperature and precipitation are in tenths
+of degrees C and mm separately. So, we also need to convert the unit for
+these two variables. The unit of snowfall is already in mm.
 
 ``` r
 ny_noaa_clean = ny_noaa |>
@@ -511,6 +512,23 @@ week, with separate panels for January and July. The color scale at the
 bottom reflects different years (from 2020 to 2024). Here’s the comment
 on the plot:
 
+- Ride Duration is Higher in July than January. Median ride durations
+  are generally longer in July than in January across all days of the
+  week. This is expected since July is warmer, and riders are more
+  likely to take longer, leisurely trips compared to the colder winter
+  month of January.
+- Shorter rides on weekdays (especially in January). In both months,
+  weekday ride durations (e.g., Tuesday, Wednesday, Thursday) tend to be
+  lower, suggesting more commuter rides that are shorter in duration.
+- Longer rides on weekends (especially in July). Saturday and Sunday in
+  July show higher median duration, reflecting recreational use of Citi
+  Bikes on weekends.
+- Ride duration increase over the years, particularly in July. In
+  January, the differences in median ride duration across days of the
+  week are minimal, with lower and more consistent duration (~8-10
+  minutes). This reflects that winter usage is primarily for commuting
+  or essential trips, with fewer long recreational rides.
+
 ``` r
 ride_duration_stats = citibike_data |>
   group_by(year, month, weekdays) |>
@@ -533,8 +551,28 @@ ggplot(ride_duration_stats, aes(x = weekdays, y = median_duration, color = year)
 <img src="homework3_files/figure-gfm/unnamed-chunk-11-1.png" width="90%" />
 
 3.5 Investigate the Impact of Month, Membership, and Bike Type on Ride
-Duration in 2024. Filter data for 2024 and create a plot of ride
-duration distributions
+Duration in 2024.
+
+Filter data for 2024 and create a plot of ride duration distributions.
+This plot displays the distribution of ride durations (in minutes)
+across different months (January vs. July), bike types (classic
+vs. electric), and membership types (casual vs. member) for 2024. Here’s
+the comment on the plot.
+
+- Shorter Ride Durations for Electric Bikes and Longer Rides for Classic
+  Bikes. Across both January and July, electric bike rides tend to be
+  shorter than classic bike rides, with most rides clustered under 20
+  minutes. Classic bike rides show more variability, with a longer right
+  tail in the distribution—some rides extend beyond 50-100 minutes.
+- Ride durations are longer in July compared to January for both bike
+  types and user categories, especially for casual riders.
+- Members tend to take shorter rides (often under 30 minutes) due to
+  frequent commuting. While the casual riders generally take longer
+  rides, likely for recreational purposes, especially during summer
+  months.
+- Most rides, especially for members, tend to cluster around 10-20
+  minutes—suggesting that many riders use Citi Bikes for short urban
+  trips or last-mile connections.
 
 ``` r
 # Filter data for 2024 and create a plot of ride duration distributions
