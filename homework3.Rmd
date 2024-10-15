@@ -257,3 +257,31 @@ ggplot(hourly_activity, aes(x = time_min, y = mean_mims, color = sex)) +
 
 ```
 
+
+## Problem 3
+
+Load the data.
+```{r load adat in problem3}
+jan_2020 = read_csv("./data/citibike/Jan 2020 Citi.csv") |>
+  janitor::clean_names() |>
+  mutate(year_month = "2020-01")
+
+july_2020 = read_csv("./data/citibike/July 2020 Citi.csv")|>
+  janitor::clean_names() |>
+  mutate(year_month = "2020-07")
+
+jan_2024 = read_csv("./data/citibike/Jan 2024 Citi.csv") |>
+  janitor::clean_names() |>
+  mutate(year_month = "2024-01")
+
+july_2024 = read_csv("./data/citibike/July 2024 Citi.csv") |>
+  janitor::clean_names() |>
+  mutate(year_month = "2024-07")
+
+citibike_data = 
+  bind_rows(jan_2020, july_2020, jan_2024, july_2024) |>
+  separate(year_month, into = c('year','month'), sep = '-')
+
+```
+
+

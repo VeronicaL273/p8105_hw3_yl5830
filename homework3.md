@@ -360,3 +360,73 @@ ggplot(hourly_activity, aes(x = time_min, y = mean_mims, color = sex)) +
     ## `geom_smooth()` using method = 'gam' and formula = 'y ~ s(x, bs = "cs")'
 
 <img src="homework3_files/figure-gfm/unnamed-chunk-8-1.png" width="90%" />
+
+## Problem 3
+
+Load the data.
+
+``` r
+jan_2020 = read_csv("./data/citibike/Jan 2020 Citi.csv") |>
+  janitor::clean_names() |>
+  mutate(year_month = "2020-01")
+```
+
+    ## Rows: 12420 Columns: 7
+    ## ── Column specification ────────────────────────────────────────────────────────
+    ## Delimiter: ","
+    ## chr (6): ride_id, rideable_type, weekdays, start_station_name, end_station_n...
+    ## dbl (1): duration
+    ## 
+    ## ℹ Use `spec()` to retrieve the full column specification for this data.
+    ## ℹ Specify the column types or set `show_col_types = FALSE` to quiet this message.
+
+``` r
+july_2020 = read_csv("./data/citibike/July 2020 Citi.csv")|>
+  janitor::clean_names() |>
+  mutate(year_month = "2020-07")
+```
+
+    ## Rows: 21048 Columns: 7
+    ## ── Column specification ────────────────────────────────────────────────────────
+    ## Delimiter: ","
+    ## chr (6): ride_id, rideable_type, weekdays, start_station_name, end_station_n...
+    ## dbl (1): duration
+    ## 
+    ## ℹ Use `spec()` to retrieve the full column specification for this data.
+    ## ℹ Specify the column types or set `show_col_types = FALSE` to quiet this message.
+
+``` r
+jan_2024 = read_csv("./data/citibike/Jan 2024 Citi.csv") |>
+  janitor::clean_names() |>
+  mutate(year_month = "2024-01")
+```
+
+    ## Rows: 18861 Columns: 7
+    ## ── Column specification ────────────────────────────────────────────────────────
+    ## Delimiter: ","
+    ## chr (6): ride_id, rideable_type, weekdays, start_station_name, end_station_n...
+    ## dbl (1): duration
+    ## 
+    ## ℹ Use `spec()` to retrieve the full column specification for this data.
+    ## ℹ Specify the column types or set `show_col_types = FALSE` to quiet this message.
+
+``` r
+july_2024 = read_csv("./data/citibike/July 2024 Citi.csv") |>
+  janitor::clean_names() |>
+  mutate(year_month = "2024-07")
+```
+
+    ## Rows: 47156 Columns: 7
+    ## ── Column specification ────────────────────────────────────────────────────────
+    ## Delimiter: ","
+    ## chr (6): ride_id, rideable_type, weekdays, start_station_name, end_station_n...
+    ## dbl (1): duration
+    ## 
+    ## ℹ Use `spec()` to retrieve the full column specification for this data.
+    ## ℹ Specify the column types or set `show_col_types = FALSE` to quiet this message.
+
+``` r
+citibike_data = 
+  bind_rows(jan_2020, july_2020, jan_2024, july_2024) |>
+  separate(year_month, into = c('year','month'), sep = '-')
+```
